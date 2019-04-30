@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <title>Merry Chrismas</title>
+    <link href="./css/style.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="./js/lib/lufylegend.LoadingSample4-0.1.0.min.js"></script>
+    <script type="text/javascript" src="./js/lib/lufylegend-1.10.1.simple.min.js"></script>
+    <script type="text/javascript" src="./js/lib/zepto.min.js"></script>
+</head>
+<style>
+    body {
+        background: #222;
+    }
+</style>
+
+<body>
+    <div id="legend"></div>
+    <script>
+        init(40, "legend", 750, 1330, main);
+        var baseUrl = './images/';
+        var imgData = [{
+            type: "js",
+            path: "./js/mybase.js"
+        }, {
+            name: "bg",
+            path: baseUrl + "bg.jpg"
+        }, {
+            name: "more",
+            path: baseUrl + "more.png"
+        }, {
+            name: "build1",
+            path: baseUrl + "build1.png"
+        }, {
+            name: "build2",
+            path: baseUrl + "build2.png"
+        }];
+        var dataList = {};
+        var movedata = [{
+            movebg: 0,
+            build: 'build1',
+            buildx: 446,
+            buildy: 880,
+        }, {
+            cupx: 543,
+            cupy: 800,
+            build: 'build2',
+            movebg: 260,
+            buildx: 646,
+            buildy: 820
+        }, {
+            cupx: 750,
+            cupy: 750,
+            build: 'build2',
+            movebg: 260,
+            buildx: 880,
+            buildy: 676
+
+        }]
+        var count = 0;
+        var loadingLayer, backLayer, itemLayer, firstLayer, menuLayer, playerLayer, block, hero;
+
+        function main() {
+            if (LGlobal.canTouch) {
+                LGlobal.stageScale = LStageScaleMode.NO_BORDER;
+                LSystem.screen(LStage.FULL_SCREEN);
+            } else {
+                LGlobal.stageScale = LStageScaleMode.SHOW_ALL;
+                LSystem.screen(LStage.FULL_SCREEN);
+                var cw = $('canvas').width();
+                var cm = $('canvas').css('marginLeft');
+            }
+            LGlobal.preventDefault = false; //滚屏事件 true禁止滚平 flase滚屏
+            LMouseEventContainer.set(LMouseEvent.MOUSE_DOWN, false);
+            LMouseEventContainer.set(LMouseEvent.MOUSE_UP, false);
+            LMouseEventContainer.set(LMouseEvent.MOUSE_MOVE, false);
+            backLayer = new LSprite();
+            addChild(backLayer);
+            firstLayer = new LSprite();
+            addChild(firstLayer);
+            loadingLayer = new LoadingSample4();
+            addChild(loadingLayer);
+            /**读取图片*/
+            LLoadManage.load(
+                imgData,
+                function(progress) {
+                    loadingLayer.setProgress(progress);
+                },
+                gameInit
+            );
+        }
+
+        function gameInit(result) {
+            //LGlobal.setDebug(true);
+            dataList = result;
+            removeChild(loadingLayer);
+            loadingLayer = null;
+            //添加背景
+            bgBitmap = new LBitmap(new LBitmapData(dataList["bg"]));
+            backLayer.addChild(bgBitmap);
+            addPlayer();
+        }
+
+
+
+        function addPlayer() {
+            itemLayer = new LSprite();
+            backLayer.addChildAt(itemLayer, 1);
+            hero = new LBitmap(new LBitmapData(dataList["more"], 455, 0, 134, 177));
+            hero.x = 280;
+            hero.y = 718;
+            hero.rotate = 0;
+            backLayer.addChildAt(hero, 2);
+
+            block = new LBitmap(new LBitmapData(dataList["more"], 0, 0, 344, 255));
+            block.x = 150;
+            block.y = 782;
+            itemLayer.addChildAt(block, 1)
+
+            var bitmapDataUp = new LBitmapData(dataList["more"], 432, 249, 143, 144);
+            var bitmapUp = new LBitmap(bitmapDataUp);
+            btn = new LButton(bitmapUp, bitmapUp);
+            btn.x = 300;
+            btn.y = 1150
+            firstLayer.addChild(btn);
+            btn.addEventListener(LMouseEvent.MOUSE_DOWN, onmove);
+
+            down();
+            //shiprun()
+            // addEvent();
+
+        }
+
+        function onmove() {
+            if (count < 2) {
+                count += 1;
+                LTweenLite.to(hero, 0.8, {
+                    rotate: 360,
+                    ease: LEasing.Sine.easeInOut,
+                    onComplete: function() {
+                        start();
+                    },
+                })
+                LTweenLite.to(hero, 0.4, {
+                    x: hero.x + movedata[count].movebg / 2,
+                    y: hero.y - 150,
+                    ease: LEasing.Sine.easeInOut
+                }).to(hero, 0.4, {
+                    x: movedata[count].cupx,
+                    y: movedata[count].cupy,
+                    ease: LEasing.Sine.easeInOut
+                });
+            }
+
+        }
+
+        function down() {
+            block = new LBitmap(new LBitmapData(dataList[movedata[count].build]));
+            block.x = movedata[count].buildx;
+            block.y = -300;
+            itemLayer.addChild(block);
+            LTweenLite.to(block, 0.7, {
+                y: movedata[count].buildy,
+                ease: LEasing.Sine.easeInOut,
+
+            })
+        }
+
+        function start() {
+            hero.rotate = 0;
+            LTweenLite.to(backLayer, 0.4, {
+                x: backLayer.x - movedata[count].movebg,
+                ease: LEasing.Sine.easeInOut,
+                onComplete: function() {
+                    down();
+                },
+            })
+        }
+    </script>
+</body>
+
+</html>
